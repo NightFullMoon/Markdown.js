@@ -152,4 +152,149 @@ This is an H2
 			isMatch:function(){return true;},
 			handle:handle
 	});
-})()
+})();
+
+
+/*
+todo:
+> 引用 Blockquotes
+
+
+*///*
+
+/*
++ 无序列表
+- 无序列表
+* 无序列表
+//TODO:2 暂时不考虑嵌套列表
+*/
+(function(){
+	var SPLIT=/\n\s*[\*\-\+] /g;
+
+
+	function handle(block){
+		var arr = ('\n'+block).split(SPLIT);
+
+		// The first one maybe not a li
+		var isFirstLi = '' === arr[0];
+
+		// console.log(arr);
+		each(arr,function(index,element){
+			if(!isFirstLi && 0 === index){return;}
+			arr[index] = wrapByTag('li',element);
+		});
+
+		if(isFirstLi){
+			wrapByTag('ul',arr.join(''));
+		}
+
+		return arr[0]+wrapByTag('ul',arr.slice(1).join(''));
+	}
+
+	Markdown.addkHandle({
+			name:"unorderList",
+			type:'block',
+			isMatch:function(content){
+				return !!content.match(SPLIT);
+			},
+			handle:handle
+	});
+})();
+
+
+/*
+1. 有序列表
+//TODO:2 暂时不考虑嵌套列表
+//目前与无序列表的区别仅仅是SPLIT跟包裹的标签不同，考虑到以后可能会进行缩进等更复杂的操作，因此还是把代码复制了一遍
+*/
+
+(function(){
+
+	var SPLIT=/\n\s*[0-9]*\. /g;
+
+	function handle(block){
+		var arr = ('\n'+block).split(SPLIT);
+
+		// The first one maybe not a li
+		var isFirstLi = '' === arr[0];
+
+		// console.log(arr);
+		each(arr,function(index,element){
+			if(!isFirstLi && 0 === index){return;}
+			arr[index] = wrapByTag('li',element);
+		});
+
+		if(isFirstLi){
+			wrapByTag('ol',arr.join(''));
+		}
+
+		return arr[0]+wrapByTag('ol',arr.slice(1).join(''));
+	}
+
+	Markdown.addkHandle({
+			name:"orderList",
+			type:'block',
+			isMatch:function(content){
+				return !!content.match(SPLIT);
+			},
+			handle:handle
+	});
+})();
+
+/*
+TODO:
+代码区块 缩进 4 个空格或是 1 个制表符
+*/
+
+(function(){
+
+	function handle(block){
+				var arr = Markdown.splitToLine(block);
+		each(arr,function(index,element){
+// todo:做到这
+		});
+	}
+
+		Markdown.addkHandle({
+			name:"code",
+			type:'block',
+			isMatch:function(content){
+				return true;
+			},
+			handle:handle
+	});
+})();
+
+/*
+TODO:
+三个以上的星号、减号、底线来建立一个分隔线，行内不能有其他东西
+*/
+
+/*
+TODO:
+链接
+*/
+
+/*
+TODO:强调
+*/
+
+/*
+TODO:
+`行内代码`
+*/
+
+/*
+TODO:
+图片
+*/
+
+/*
+TODO:
+自动链接
+*/
+
+/*
+TODO:
+反斜杠
+*/
