@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<meta charset="utf-8">
+</head>
+<body>
+<p id="xx">
+
+	# sdf
+	
+aa
+===
+</p>
+
+<div id="oo"></div>
+
+
+<script type="text/javascript" src="Markdown.js"></script>
+
+<script type="text/javascript">
+	console.log(document.getElementById("xx").innerHTML)
+	var result = Markdown(document.getElementById("xx").innerHTML);
+
+	document.getElementById('oo').innerHTML = result;
+</script>
+</body>
+</html>
