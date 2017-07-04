@@ -15,12 +15,12 @@ function Markdown(content) {
 
         var that = Markdown;
 
-        /*	for(var i in that._handles.block){
-        		that._handles.block[i]()
-        	}*/
+        /*      for(var i in that._handles.block){
+                        that._handles.block[i]()
+                }*/
 
         each(temp, function(i, block) {
-                console.log(block);
+                // console.log(block);
 
                 // var 
                 var afterTrans = String(block);
@@ -29,8 +29,10 @@ function Markdown(content) {
                 each(that._handles.block, function(i, e) {
                         var isMatch = e.isMatch(block);
                         if (isMatch) {
-                                console.log("匹配到:" + e.name);
+                                // console.log("匹配到:" + e.name);
                                 afterTrans = e.handle(block);
+
+                                // console.log(afterTrans);
                                 return;
                         }
                 });
@@ -38,7 +40,7 @@ function Markdown(content) {
                 // 处理整行
                 each(that._handles.line, function(i, e) {
                         if (e.isMatch(afterTrans)) {
-                                console.log("匹配到:" + e.name);
+                                // console.log("匹配到:" + e.name);
                                 afterTrans = e.handle(afterTrans);
                                 return false;
                         }
@@ -71,6 +73,12 @@ Markdown.joinToLine = function(arr) {
         return arr.join('\n');
 }
 
+// 判断str中除了空格，换行之外是否存在字符
+Markdown.hasChar = function(str) {
+        return 0<str.replace(/\s*/g,'').length;
+}
+
+
 // 处理方式
 Markdown._handles = {
         inline: [],
@@ -80,10 +88,10 @@ Markdown._handles = {
 
 
 /*function eahc(arr,callback){
-	for(var i=0;i<arr.length;++i){
-		var result = callback && callback.call(arr[i],i.arr[i]);
-		if(false === result){return;}
-	}
+        for(var i=0;i<arr.length;++i){
+                var result = callback && callback.call(arr[i],i.arr[i]);
+                if(false === result){return;}
+        }
 }*/
 
 function wrapByTag(tag, content) {
@@ -100,6 +108,7 @@ todo:如果空格太多会变成引用是什么鬼？
 #标题h
 */
 (function() {
+        return;
         // console.log(Markdown);
         // console.log(each);
 
@@ -125,6 +134,8 @@ todo:如果空格太多会变成引用是什么鬼？
 })();
 
 /*
+某一行只存在-或=
+注：该行只允许存在-与=,前后允许存在空白符
 This is an H1
 =============
 
@@ -133,25 +144,35 @@ This is an H2
 */
 (function() {
 
-        var H1 = /^\s*={2,}\s*$/g
+        var regx = /^\s*(={1,}|-{1,})\s*$/g;
 
         function handle(block) {
                 var arr = Markdown.splitToLine(block);
-                each(arr, function(i, e) {
+                each(arr, function(i, element) {
                         if (0 == i) {
                                 return;
                         }
 
-                        var match = e.match(H1);
-                        if (match) {
-                                // e = '';
-                                arr[i] = '';
-                                arr[i - 1] = wrapByTag('h1', arr[i - 1]);
+                        var match = element.match(regx);
+                        if (match && 0!==i && Markdown.hasChar(arr[i - 1])) {
+
+                                var tag ="";
+                                if(-1<element.indexOf('=')){
+                                        tag = "h1";
+                                }else{
+                                         tag = "h2";
+                                }
+                                element = '';
+                                arr[i - 1] = wrapByTag(tag, arr[i - 1]);
                                 return;
                         }
                 });
+                /*fixme:这边有个问题就是说，如果把已经匹配的标识符整行去掉后保留一个空行，会导致join的时候，多出一个空行，后续处理有block划分有误差的可能，
+                但是如果使数组的长度发生变化，因为在还在循环中，会导致错过一行的情况发生*/
+                var result = Markdown.joinToLine(arr);
+                console.log(result);
 
-                return arr.join('');
+                return result;
         }
 
 
@@ -266,7 +287,7 @@ todo:
         var BEGIN = /^    |\t/g;
 
         function isMatch(content) {
-                console.log(content);
+                // console.log(content);
                 var arr = Markdown.splitToLine(content);
                 return BEGIN.test(arr[0]);
         }
@@ -334,66 +355,66 @@ TODO:
 
         // 返回未处理完的子串
         function subHandle(block) {
-        	var bracketStack = [];
-        	var linkText = "";
-        	// var match = block.match(/\]\(/g);
-        	// if(!match){return;}
-        	var _start = -1;
-        	var _end =  block.indexOf('](');
-        	if(-1 === _end){
-        		return {
-        			handled:block,
-        			unhandle:''
-        		};
-        	}
-        	var text='';
-        	for(var i = _end;_start<i;--i){
-        			switch(block[i]){
-        				case ']':
-        					bracketStack.push(']');
-        					break;
-        				case '[':
-        					bracketStack.pop();
-        					if(0 == bracketStack.length){
-        						
-        						_start =i;
-        					}
-        					break;
-        				default:
-							text = block[i]+text;
-        					break;
-        			}
-        	}
+                var bracketStack = [];
+                var linkText = "";
+                // var match = block.match(/\]\(/g);
+                // if(!match){return;}
+                var _start = -1;
+                var _end = block.indexOf('](');
+                if (-1 === _end) {
+                        return {
+                                handled: block,
+                                unhandle: ''
+                        };
+                }
+                var text = '';
+                for (var i = _end; _start < i; --i) {
+                        switch (block[i]) {
+                                case ']':
+                                        bracketStack.push(']');
+                                        break;
+                                case '[':
+                                        bracketStack.pop();
+                                        if (0 == bracketStack.length) {
 
-        	var subStr = block.slice(_end+2);
+                                                _start = i;
+                                        }
+                                        break;
+                                default:
+                                        text = block[i] + text;
+                                        break;
+                        }
+                }
 
-			var hrefEnd = subStr.indexOf(')');
-			// console.log(block.slice(2+start+hrefEnd));
+                var subStr = block.slice(_end + 2);
 
-			var title =  block.slice(_start+1,_end);
-			var href = subStr.slice(0,hrefEnd);
-				
-			return {
-					handled: block.slice(0,_start)+'<a href="'+href+'">'+title+'</a>',
-					unhandle:subStr.slice(hrefEnd+1)
-				}
+                var hrefEnd = subStr.indexOf(')');
+                // console.log(block.slice(2+start+hrefEnd));
+
+                var title = block.slice(_start + 1, _end);
+                var href = subStr.slice(0, hrefEnd);
+
+                return {
+                        handled: block.slice(0, _start) + '<a href="' + href + '">' + title + '</a>',
+                        unhandle: subStr.slice(hrefEnd + 1)
+                }
         }
 
-        function handle(block){
-        	var resultStr='';
-        	var result={
-        		unhandle:block
-        	}
+        function handle(block) {
+                var resultStr = '';
+                var result = {
+                        unhandle: block
+                }
 
-        	do{
-				result = subHandle(result.unhandle);
-				resultStr =resultStr+result.handled;
-				// debugger;
-        	}while(''!=result.unhandle)
+                do {
+                        result = subHandle(result.unhandle);
+                        resultStr = resultStr + result.handled;
+                        // debugger;
+                } while ('' != result.unhandle)
 
 
-        	return resultStr;
-        	
+                return resultStr;
+
         }
 
         Markdown.addkHandle({
@@ -426,4 +447,16 @@ TODO:
 /*
 TODO:
 反斜杠
+*/
+
+/*
+几种情况的说明：
+a
+---
+标题a
+
+
+
+
+
 */
