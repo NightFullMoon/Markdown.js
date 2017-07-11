@@ -54,7 +54,13 @@ function Markdown(content) {
 		temp[i] = afterTrans;
 	});
 
-	return temp.join('');
+	var result = temp.join('');
+
+	each(that._transList, function(i, e) {
+		result.replace(new RegExp(e.escapeChar, 'g'), e.origin);
+	});
+
+	return result;
 };
 
 //添加一种标记的处理方式
@@ -78,6 +84,15 @@ Markdown.hasChar = function(str) {
 	return 0 < str.replace(/\s*/g, '').length;
 }
 
+//添加一个转义字符，在最后会将所有的escapeChar，替换为origin
+Markdown.addTransChar = function(origin, escapeChar) {
+	Markdown._transList.push({
+		origin: origin,
+		escapeChar: escapeChar
+	});
+}
+
+Markdown._transList = [];
 
 // 处理方式
 Markdown._handles = {
@@ -425,11 +440,14 @@ TODO:
 
 /*
 TODO:强调
+
+用什么符号开启标签，就要用什么符号结束。
+如果你的 * 和 _ 两边都有空白的话，它们就只会被当成普通的符号。
 */
 
 (function() {
 
-	var regx = /[\*_]([^\*_]*?)[\*_]/g;
+	var regx = /([\*_])([^\*_]*?)\1/g;
 
 	Markdown.addHandle({
 		name: "inlineLink",
@@ -439,8 +457,9 @@ TODO:强调
 		},
 		handle: function(line) {
 
+			// todo：将文本中间的标记转换成转义字符
 
-			var result = line.replace(regx, "<em>$1</em>");
+			var result = line.replace(regx, "<em>$2</em>");
 			// debugger
 			return result;
 		}
