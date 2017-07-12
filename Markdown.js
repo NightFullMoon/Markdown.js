@@ -449,6 +449,14 @@ TODO:强调
 
 	var regx = /([\*_])([^\*_]*?)\1/g;
 
+	// todo：添加一个转义字符
+	var trans = {
+		origin: "\*",
+		escapeChar: "\*"
+	};
+
+	Markdown.addTransChar('\\*', '\\*');
+
 	Markdown.addHandle({
 		name: "inlineLink",
 		type: 'block',
@@ -456,10 +464,21 @@ TODO:强调
 			return line.match(regx);
 		},
 		handle: function(line) {
+			// todo:一行内可能有多个行内匹配
 
 			// todo：将文本中间的标记转换成转义字符
 
-			var result = line.replace(regx, "<em>$2</em>");
+			// 1:取出内容,t
+
+			// var content = line.match(regx, "$2")[0] || "";
+			// content = content.replace(/\*/g, "\*");
+			// debugger
+
+			// var result = line.replace(regx, "<em>" + content + "</em>");
+
+			var result = line.replace(regx, function(main, sub1, sub2) {
+				return "<em>" + sub2.replace(/\*/g, "\\*") + "</em>"
+			});
 			// debugger
 			return result;
 		}
