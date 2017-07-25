@@ -446,8 +446,8 @@ TODO:强调
 */
 
 (function() {
-
-	var regx = /([\*_])([^\*_]*?)\1/g;
+	// [^\*_]
+	var regx = /([\*_]{1,2})([^\*_]*?)\1/g;
 
 	// todo：添加一个转义字符
 	var trans = {
@@ -464,20 +464,18 @@ TODO:强调
 			return line.match(regx);
 		},
 		handle: function(line) {
-			// todo:一行内可能有多个行内匹配
-
-			// todo：将文本中间的标记转换成转义字符
-
-			// 1:取出内容,t
-
-			// var content = line.match(regx, "$2")[0] || "";
-			// content = content.replace(/\*/g, "\*");
-			// debugger
-
-			// var result = line.replace(regx, "<em>" + content + "</em>");
+			// todo:互相嵌套的情况还不正确，eg:**aaa*b*aaa**
 
 			var result = line.replace(regx, function(main, sub1, sub2) {
-				return "<em>" + sub2.replace(/\*/g, "\\*") + "</em>"
+				var content = sub2.replace(/\*/g, "\\*");
+				console.warn(main);
+
+				if (1 == sub1.length) {
+					return "<em>" + content + "</em>";
+				} else {
+					return "<strong>" + content + "</strong>";
+				}
+
 			});
 			// debugger
 			return result;
